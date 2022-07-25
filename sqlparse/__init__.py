@@ -15,7 +15,7 @@ from sqlparse import tokens
 from sqlparse import filters
 from sqlparse import formatter
 
-__version__ = '0.4.3.dev0'
+__version__ = '0.4.3'
 __all__ = ['engine', 'filters', 'formatter', 'sql', 'tokens', 'cli']
 
 from sqlparse.parsers import GenericSqlParser
