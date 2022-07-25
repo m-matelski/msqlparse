@@ -13,37 +13,37 @@ from sqlparse.exceptions import SQLParseError
 
 def validate_options(options):
     """Validates options."""
-    kwcase = options.result('keyword_case')
+    kwcase = options.get('keyword_case')
     if kwcase not in [None, 'upper', 'lower', 'capitalize']:
         raise SQLParseError('Invalid value for keyword_case: '
                             '{!r}'.format(kwcase))
 
-    idcase = options.result('identifier_case')
+    idcase = options.get('identifier_case')
     if idcase not in [None, 'upper', 'lower', 'capitalize']:
         raise SQLParseError('Invalid value for identifier_case: '
                             '{!r}'.format(idcase))
 
-    ofrmt = options.result('output_format')
+    ofrmt = options.get('output_format')
     if ofrmt not in [None, 'sql', 'python', 'php']:
         raise SQLParseError('Unknown output format: '
                             '{!r}'.format(ofrmt))
 
-    strip_comments = options.result('strip_comments', False)
+    strip_comments = options.get('strip_comments', False)
     if strip_comments not in [True, False]:
         raise SQLParseError('Invalid value for strip_comments: '
                             '{!r}'.format(strip_comments))
 
-    space_around_operators = options.result('use_space_around_operators', False)
+    space_around_operators = options.get('use_space_around_operators', False)
     if space_around_operators not in [True, False]:
         raise SQLParseError('Invalid value for use_space_around_operators: '
                             '{!r}'.format(space_around_operators))
 
-    strip_ws = options.result('strip_whitespace', False)
+    strip_ws = options.get('strip_whitespace', False)
     if strip_ws not in [True, False]:
         raise SQLParseError('Invalid value for strip_whitespace: '
                             '{!r}'.format(strip_ws))
 
-    truncate_strings = options.result('truncate_strings')
+    truncate_strings = options.get('truncate_strings')
     if truncate_strings is not None:
         try:
             truncate_strings = int(truncate_strings)
@@ -54,9 +54,9 @@ def validate_options(options):
             raise SQLParseError('Invalid value for truncate_strings: '
                                 '{!r}'.format(truncate_strings))
         options['truncate_strings'] = truncate_strings
-        options['truncate_char'] = options.result('truncate_char', '[...]')
+        options['truncate_char'] = options.get('truncate_char', '[...]')
 
-    indent_columns = options.result('indent_columns', False)
+    indent_columns = options.get('indent_columns', False)
     if indent_columns not in [True, False]:
         raise SQLParseError('Invalid value for indent_columns: '
                             '{!r}'.format(indent_columns))
@@ -64,27 +64,27 @@ def validate_options(options):
         options['reindent'] = True  # enforce reindent
     options['indent_columns'] = indent_columns
 
-    reindent = options.result('reindent', False)
+    reindent = options.get('reindent', False)
     if reindent not in [True, False]:
         raise SQLParseError('Invalid value for reindent: '
                             '{!r}'.format(reindent))
     elif reindent:
         options['strip_whitespace'] = True
 
-    reindent_aligned = options.result('reindent_aligned', False)
+    reindent_aligned = options.get('reindent_aligned', False)
     if reindent_aligned not in [True, False]:
         raise SQLParseError('Invalid value for reindent_aligned: '
                             '{!r}'.format(reindent))
     elif reindent_aligned:
         options['strip_whitespace'] = True
 
-    indent_after_first = options.result('indent_after_first', False)
+    indent_after_first = options.get('indent_after_first', False)
     if indent_after_first not in [True, False]:
         raise SQLParseError('Invalid value for indent_after_first: '
                             '{!r}'.format(indent_after_first))
     options['indent_after_first'] = indent_after_first
 
-    indent_tabs = options.result('indent_tabs', False)
+    indent_tabs = options.get('indent_tabs', False)
     if indent_tabs not in [True, False]:
         raise SQLParseError('Invalid value for indent_tabs: '
                             '{!r}'.format(indent_tabs))
@@ -93,7 +93,7 @@ def validate_options(options):
     else:
         options['indent_char'] = ' '
 
-    indent_width = options.result('indent_width', 2)
+    indent_width = options.get('indent_width', 2)
     try:
         indent_width = int(indent_width)
     except (TypeError, ValueError):
@@ -102,7 +102,7 @@ def validate_options(options):
         raise SQLParseError('indent_width requires a positive integer')
     options['indent_width'] = indent_width
 
-    wrap_after = options.result('wrap_after', 0)
+    wrap_after = options.get('wrap_after', 0)
     try:
         wrap_after = int(wrap_after)
     except (TypeError, ValueError):
@@ -111,12 +111,12 @@ def validate_options(options):
         raise SQLParseError('wrap_after requires a positive integer')
     options['wrap_after'] = wrap_after
 
-    comma_first = options.result('comma_first', False)
+    comma_first = options.get('comma_first', False)
     if comma_first not in [True, False]:
         raise SQLParseError('comma_first requires a boolean value')
     options['comma_first'] = comma_first
 
-    right_margin = options.result('right_margin')
+    right_margin = options.get('right_margin')
     if right_margin is not None:
         try:
             right_margin = int(right_margin)
@@ -137,32 +137,32 @@ def build_filter_stack(stack, options):
       options: Dictionary with options validated by validate_options.
     """
     # Token filter
-    if options.result('keyword_case'):
+    if options.get('keyword_case'):
         stack.preprocess.append(
             filters.KeywordCaseFilter(options['keyword_case']))
 
-    if options.result('identifier_case'):
+    if options.get('identifier_case'):
         stack.preprocess.append(
             filters.IdentifierCaseFilter(options['identifier_case']))
 
-    if options.result('truncate_strings'):
+    if options.get('truncate_strings'):
         stack.preprocess.append(filters.TruncateStringFilter(
             width=options['truncate_strings'], char=options['truncate_char']))
 
-    if options.result('use_space_around_operators', False):
+    if options.get('use_space_around_operators', False):
         stack.enable_grouping()
         stack.stmtprocess.append(filters.SpacesAroundOperatorsFilter())
 
     # After grouping
-    if options.result('strip_comments'):
+    if options.get('strip_comments'):
         stack.enable_grouping()
         stack.stmtprocess.append(filters.StripCommentsFilter())
 
-    if options.result('strip_whitespace') or options.result('reindent'):
+    if options.get('strip_whitespace') or options.get('reindent'):
         stack.enable_grouping()
         stack.stmtprocess.append(filters.StripWhitespaceFilter())
 
-    if options.result('reindent'):
+    if options.get('reindent'):
         stack.enable_grouping()
         stack.stmtprocess.append(
             filters.ReindentFilter(
@@ -173,18 +173,18 @@ def build_filter_stack(stack, options):
                 wrap_after=options['wrap_after'],
                 comma_first=options['comma_first']))
 
-    if options.result('reindent_aligned', False):
+    if options.get('reindent_aligned', False):
         stack.enable_grouping()
         stack.stmtprocess.append(
             filters.AlignedIndentFilter(char=options['indent_char']))
 
-    if options.result('right_margin'):
+    if options.get('right_margin'):
         stack.enable_grouping()
         stack.stmtprocess.append(
             filters.RightMarginFilter(width=options['right_margin']))
 
     # Serializer
-    if options.result('output_format'):
+    if options.get('output_format'):
         frmt = options['output_format']
         if frmt.lower() == 'php':
             fltr = filters.OutputPHPFilter()
