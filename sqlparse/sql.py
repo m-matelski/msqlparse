@@ -8,6 +8,7 @@
 """This module contains classes representing syntactical elements of SQL."""
 
 import re
+from typing import Union
 
 from sqlparse import tokens as T
 from sqlparse.utils import imt, remove_quotes
@@ -642,3 +643,6 @@ class Values(TokenList):
 
 class Command(TokenList):
     """Grouping of CLI commands."""
+
+
+TypeParsed = Union[Token, TokenList]

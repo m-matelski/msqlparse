@@ -15,9 +15,10 @@ from sqlparse import tokens
 from sqlparse import filters
 from sqlparse import formatter
 
-
 __version__ = '0.4.3.dev0'
 __all__ = ['engine', 'filters', 'formatter', 'sql', 'tokens', 'cli']
+
+from sqlparse.parsers import GenericSqlParser
 
 
 def parse(sql, encoding=None):
@@ -37,9 +38,8 @@ def parsestream(stream, encoding=None):
     :param encoding: The encoding of the stream contents (optional).
     :returns: A generator of :class:`~sqlparse.sql.Statement` instances.
     """
-    stack = engine.FilterStack()
-    stack.enable_grouping()
-    return stack.run(stream, encoding)
+    parser = GenericSqlParser()
+    return parser.parse(stream, encoding)
 
 
 def format(sql, encoding=None, **options):
@@ -52,7 +52,8 @@ def format(sql, encoding=None, **options):
 
     :returns: The formatted SQL statement as string.
     """
-    stack = engine.FilterStack()
+    parser = GenericSqlParser()
+    stack = parser.stack
     options = formatter.validate_options(options)
     stack = formatter.build_filter_stack(stack, options)
     stack.postprocess.append(filters.SerializerUnicode())
@@ -66,5 +67,6 @@ def split(sql, encoding=None):
     :param encoding: The encoding of the statement (optional).
     :returns: A list of strings.
     """
-    stack = engine.FilterStack()
+    parser = GenericSqlParser()
+    stack = parser.stack
     return [str(stmt).strip() for stmt in stack.run(sql, encoding)]

@@ -4,6 +4,8 @@
 #
 # This module is part of python-sqlparse and is released under
 # the BSD License: https://opensource.org/licenses/BSD-3-Clause
+from abc import ABC, abstractmethod
+from typing import Protocol, Type, Tuple, Union
 
 from sqlparse import sql
 from sqlparse import tokens as T
@@ -12,6 +14,15 @@ from sqlparse.utils import recurse, imt
 T_NUMERICAL = (T.Number, T.Number.Integer, T.Number.Float)
 T_STRING = (T.String, T.String.Single, T.String.Symbol)
 T_NAME = (T.Name, T.Name.Placeholder)
+
+
+class GroupOperation(Protocol):
+    """
+    Interface for group operation. Callable operates on input token list.
+    """
+
+    def __call__(self, tlist: sql.TokenList) -> None:
+        pass
 
 
 def _group_matching(tlist, cls):
@@ -253,9 +264,9 @@ def group_operator(tlist):
 
     def valid(token):
         return imt(token, i=sqlcls, t=ttypes) \
-            or (token and token.match(
-                T.Keyword,
-                ('CURRENT_DATE', 'CURRENT_TIME', 'CURRENT_TIMESTAMP')))
+               or (token and token.match(
+            T.Keyword,
+            ('CURRENT_DATE', 'CURRENT_TIME', 'CURRENT_TIMESTAMP')))
 
     def post(tlist, pidx, tidx, nidx):
         tlist[tidx].ttype = T.Operator
@@ -419,7 +430,8 @@ def group(stmt):
     return stmt
 
 
-def _group(tlist, cls, match,
+def _group(tlist: sql.TokenList,
+           cls: Union[Type[sql.Token], Tuple[Type[sql.Token], ...]], match,
            valid_prev=lambda t: True,
            valid_next=lambda t: True,
            post=None,
@@ -452,3 +464,15 @@ def _group(tlist, cls, match,
                 continue
 
         pidx, prev_ = tidx, token
+
+
+class Grouper(ABC):
+    @abstractmethod
+    def group(self, stmt):
+        pass
+
+
+# TODO typing
+class GenericGrouper(Grouper):
+    def group(self, stmt: sql.Statement) -> sql.Statement:
+        return group(stmt)

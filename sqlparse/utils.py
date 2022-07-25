@@ -18,6 +18,7 @@ from contextlib import contextmanager
 # It matches groups of characters: newlines, quoted strings, or unquoted text,
 # and splits on that basis. The post-processing step puts those back together
 # into the actual lines of SQL.
+
 SPLIT_REGEX = re.compile(r"""
 (
  (?:                     # Start of non-capturing group
@@ -66,6 +67,7 @@ def recurse(*cls):
     :param cls: Classes to not recurse over
     :return: function
     """
+
     def wrap(f):
         def wrapped_f(tlist):
             for sgroup in tlist.get_sublists():
@@ -119,3 +121,4 @@ def indent(filter_, n=1):
     filter_.indent += n
     yield
     filter_.indent -= n
+

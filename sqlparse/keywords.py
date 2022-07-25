@@ -6,11 +6,12 @@
 # the BSD License: https://opensource.org/licenses/BSD-3-Clause
 
 import re
+from typing import Tuple, Match, Protocol, AnyStr, Optional, Union, List, Callable
 
 from sqlparse import tokens
 
 
-def is_keyword(value):
+def is_keyword(value: str) -> Tuple[tokens.TokenType, str]:
     val = value.upper()
     return (KEYWORDS_COMMON.get(val)
             or KEYWORDS_ORACLE.get(val)
@@ -19,7 +20,7 @@ def is_keyword(value):
             or KEYWORDS.get(val, tokens.Name)), value
 
 
-SQL_REGEX = {
+SQL_REGEX_CONF = {
     'root': [
         (r'(--|# )\+.*?(\r\n|\r|\n|$)', tokens.Comment.Single.Hint),
         (r'/\*\+[\s\S]*?\*/', tokens.Comment.Multiline.Hint),
@@ -97,7 +98,19 @@ SQL_REGEX = {
     ]}
 
 FLAGS = re.IGNORECASE | re.UNICODE
-SQL_REGEX = [(re.compile(rx, FLAGS).match, tt) for rx, tt in SQL_REGEX['root']]
+
+RegexRule = Callable[[str, Optional[int], Optional[int]], Optional[re.Match]]
+
+
+class CustomRule(Protocol):
+    def __call__(self, value: str) -> Tuple[tokens.TokenType, str]:
+        pass
+
+
+TokenRule = Tuple[RegexRule, Union[tokens.TokenType, CustomRule]]
+
+
+SQL_REGEX: List[TokenRule] = [(re.compile(rx, FLAGS).match, tt) for rx, tt in SQL_REGEX_CONF['root']]
 
 KEYWORDS = {
     'ABORT': tokens.Keyword,
