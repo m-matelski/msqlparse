@@ -13,19 +13,23 @@
 # and to allow some customizations.
 
 from io import TextIOBase
+from typing import List, Tuple, Generator, Union, Sequence, Optional
 
 from sqlparse import tokens
-from sqlparse.keywords import SQL_REGEX
+from sqlparse.keywords import TokenRule, SQL_REGEX
 from sqlparse.utils import consume
 
 
+# SQL_REGEX AS DEFAULT token rules
 class Lexer:
     """Lexer
     Empty class. Leaving for backwards-compatibility
     """
 
-    @staticmethod
-    def get_tokens(text, encoding=None):
+    def __init__(self, token_rules: Sequence[TokenRule]):
+        self.token_rules = token_rules
+
+    def get_tokens(self, text, encoding: Optional[str] = None) -> Generator[Tuple[tokens.TokenType, str], None, None]:
         """
         Return an iterable of (tokentype, value) pairs generated from
         `text`. If `unfiltered` is set to `True`, the filtering mechanism
@@ -57,12 +61,12 @@ class Lexer:
 
         iterable = enumerate(text)
         for pos, char in iterable:
-            for rexmatch, action in SQL_REGEX:
+            for rexmatch, action in self.token_rules:
                 m = rexmatch(text, pos)
 
                 if not m:
                     continue
-                elif isinstance(action, tokens._TokenType):
+                elif isinstance(action, tokens.TokenType):
                     yield action, m.group()
                 elif callable(action):
                     yield action(m.group())
@@ -79,4 +83,4 @@ def tokenize(sql, encoding=None):
     Tokenize *sql* using the :class:`Lexer` and return a 2-tuple stream
     of ``(token type, value)`` items.
     """
-    return Lexer().get_tokens(sql, encoding)
+    return Lexer(SQL_REGEX).get_tokens(sql, encoding)

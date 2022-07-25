@@ -4,8 +4,10 @@
 #
 # This module is part of python-sqlparse and is released under
 # the BSD License: https://opensource.org/licenses/BSD-3-Clause
+from typing import Generator, Sequence, Tuple
 
 from sqlparse import sql, tokens as T
+from sqlparse.tokens import TokenType
 
 
 class StatementSplitter:
@@ -24,7 +26,7 @@ class StatementSplitter:
         self.tokens = []
         self.level = 0
 
-    def _change_splitlevel(self, ttype, value):
+    def _change_splitlevel(self, ttype: TokenType, value: str) -> int:
         """Get the new split level (increase, decrease or remain equal)"""
 
         # parenthesis increase/decrease a level
@@ -76,7 +78,7 @@ class StatementSplitter:
         # Default
         return 0
 
-    def process(self, stream):
+    def process(self, stream: Sequence[Tuple[TokenType, str]]) -> Generator[sql.Statement, None, None]:
         """Process the stream"""
         EOS_TTYPE = T.Whitespace, T.Comment.Single
 

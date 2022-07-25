@@ -19,7 +19,7 @@ class _TokenType(tuple):
         return item is not None and (self is item or item[:len(self)] == self)
 
     def __getattr__(self, name):
-        new = _TokenType(self + (name,))
+        new = TokenType(self + (name,))
         setattr(self, name, new)
         new.parent = self
         return new
@@ -28,8 +28,12 @@ class _TokenType(tuple):
         # self can be False only if its the `root` i.e. Token itself
         return 'Token' + ('.' if self else '') + '.'.join(self)
 
+    def __deepcopy__(self, memodict={}):
+        return self
 
-Token = _TokenType()
+
+TokenType = _TokenType
+Token = TokenType()
 
 # Special token types
 Text = Token.Text
