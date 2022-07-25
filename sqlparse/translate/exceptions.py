@@ -1,2 +1,0 @@
-class TranslationNotFoundException(Exception):
-    pass
