@@ -26,7 +26,8 @@ class Lexer:
     Empty class. Leaving for backwards-compatibility
     """
 
-    def __init__(self, token_rules: Sequence[TokenRule]):
+    def __init__(self, token_rules: Sequence[TokenRule], encoding: Optional[str] = None):
+        self.encoding = encoding
         self.token_rules = token_rules
 
     def get_tokens(self, text, encoding: Optional[str] = None) -> Generator[Tuple[tokens.TokenType, str], None, None]:
@@ -42,6 +43,9 @@ class Lexer:
 
         ``stack`` is the initial stack (default: ``['root']``)
         """
+        if self.encoding:
+            encoding = self.encoding
+
         if isinstance(text, TextIOBase):
             text = text.read()
 

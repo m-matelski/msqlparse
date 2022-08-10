@@ -468,7 +468,7 @@ def _group(tlist: sql.TokenList,
 
 class Grouper(ABC):
     @abstractmethod
-    def group(self, stmt):
+    def group(self, stmt: sql.Statement) -> sql.Statement:
         pass
 
 
